@@ -47,6 +47,27 @@ app_server <- function(input, output, session) {
     data_import_rv = data_import_rv,
     data_clean_rv = data_clean_rv
   )
+  ##> remove noise
+  data_rm_noise_server(
+    id = "data_rm_noise_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  ##> detected outlier
+  data_rm_outlier_server(
+    id = "data_rm_outlier_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  ##> missing value imputation
+  data_mv_impute_server(
+    id = "data_mv_impute_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
 
 
 

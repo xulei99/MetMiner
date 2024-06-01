@@ -498,6 +498,8 @@ data_import_raw_server <- function(id,volumes,prj_init,data_import_rv) {
           tbl = data_import_rv$out_para_tbl,filename.a = "3.3.rawDataImport_summary_of_parameters"
         )
 
+
+
         output$obj_mass_check.pos = renderPrint({
           print(data_import_rv$object_pos)
         })

@@ -94,7 +94,17 @@ data_overview_ui <- function(id) {
               icon = icon('minus'),
               tags$h3("Feature accumulation profile of QC samples",style = 'color: #008080'),
               hr_main(),
-              uiOutput(ns("data_clean_batch_plt.neg")),
+              jqui_resizable(
+                uiOutput(ns("data_clean_batch_plt.neg"))
+              ),
+              textInput(inputId = ns("width4.1.3.1"),
+                        label = "width",
+                        value = 10),
+              textInput(inputId = ns("height4.1.3.1"),
+                        label = "height",
+                        value = 10),
+              actionButton(ns("adjust4.1.3.1"),"Set fig size"),
+              downloadButton(ns("downfig4.1.3"),"Download"),
               tags$h3("Summary of missing values in all samples",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
@@ -125,7 +135,7 @@ data_overview_ui <- function(id) {
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom shinyjs toggle runjs useShinyjs
-#' @importFrom dplyr select
+#' @importFrom dplyr select left_join
 #' @importFrom massdataset activate_mass_dataset
 #' @importFrom plotly renderPlotly plotlyOutput
 #' @param id module of server
@@ -169,6 +179,18 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
           return()
         }
 
+        p2_dataclean$object_neg =
+          p2_dataclean$object_neg %>%
+          activate_mass_dataset('sample_info') %>%
+          dplyr::select(sample_id) %>%
+          dplyr::left_join(prj_init$sample_info)
+
+        p2_dataclean$object_pos =
+          p2_dataclean$object_pos %>%
+          activate_mass_dataset('sample_info') %>%
+          dplyr::select(sample_id) %>%
+          dplyr::left_join(prj_init$sample_info)
+
         ##> update sample info
         observeEvent(
           input$data_clean_reupload_si,
@@ -176,7 +198,6 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
             if(is.null(input$re_upload_sample_info)){return()}
             if(is.null(prj_init$sample_info)){return()}
             p2_dataclean$temp_sample_info =prj_init$sample_info%>% as.data.frame()
-            prj_init$sample_info = p2_dataclean$temp_sample_info
 
             p2_dataclean$object_pos <-
               p2_dataclean$object_pos %>%
@@ -203,17 +224,20 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
           plot_type <- input$data_clean_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_plot_checkbatch.pos")
+            plotlyOutput(outputId = ns("plotly_plot_checkbatch.pos"))
           } else {
-            plotOutput(outputId = "plot_checkbatch.pos")
+            plotOutput(outputId = ns("plot_checkbatch.pos"))
           }
+
         })
+
 
         output$plot_checkbatch.pos <- renderPlot({
           if(is.null(input$data_clean_start)){return()}
           if(is.null(p2_dataclean$object_pos)){return()}
           QC_boxplot(object = p2_dataclean$object_pos,colby = p2_dataclean$color_key_batch,type = 'plot')
         })
+
 
         output$plotly_plot_checkbatch.pos <- renderPlotly({
           if(is.null(input$data_clean_start)){return()}
@@ -226,9 +250,9 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
           plot_type <- input$data_clean_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_plot_checkbatch.neg")
+            plotlyOutput(outputId = ns("plotly_plot_checkbatch.neg"))
           } else {
-            plotOutput(outputId = "plot_checkbatch.neg")
+            plotOutput(outputId = ns("plot_checkbatch.neg"))
           }
         })
 
@@ -249,9 +273,9 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
           plot_type <- input$data_clean_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_plot_checkmv.pos")
+            plotlyOutput(outputId = ns("plotly_plot_checkmv.pos"))
           } else {
-            plotOutput(outputId = "plot_checkmv.pos")
+            plotOutput(outputId = ns("plot_checkmv.pos"))
           }
         })
 
@@ -272,9 +296,9 @@ data_overview_server <- function(id,volumes,prj_init,data_import_rv,data_clean_r
           plot_type <- input$data_clean_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_plot_checkmv.neg")
+            plotlyOutput(outputId = ns("plotly_plot_checkmv.neg"))
           } else {
-            plotOutput(outputId = "plot_checkmv.neg")
+            plotOutput(outputId = ns("plot_checkmv.neg"))
           }
         })
 

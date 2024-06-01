@@ -27,7 +27,10 @@ app_ui <- function(request) {
       navbarMenu(
         title = 'Data Cleaning',
         icon = bs_icon("filter"),
-        data_overview_ui("data_overview_id")
+        data_overview_ui("data_overview_id"),
+        data_rm_noise_ui("data_rm_noise_id"),
+        data_rm_outlier_ui("data_rm_outlier_id"),
+        data_mv_impute_ui("data_mv_impute_id")
       )
     )
   )
