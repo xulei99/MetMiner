@@ -1,4 +1,4 @@
-#' Compound annotation
+#' Merge ESI+ and ESI-
 #'
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
@@ -161,7 +161,7 @@ data_merge_ui <- function(id) {
 }
 
 
-#' Compound annotation
+#' Merge ESI+ and ESI-
 #' The application server-side
 #'
 #' @param input,output,session Internal parameters for {shiny}.
