@@ -15,6 +15,8 @@ app_server <- function(input, output, session) {
   #> project init
   prj_init <- reactiveValues(data = NULL) # project init
   project_init_server(id = "project_init_id",volumes = volumes,prj_init)
+  #> download reactive value
+  download <- reactiveValues(data = NULL)
   #> Data import
   ##> from raw data
   data_import_rv <- reactiveValues(data = NULL)
@@ -64,6 +66,36 @@ app_server <- function(input, output, session) {
   ##> missing value imputation
   data_mv_impute_server(
     id = "data_mv_impute_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  ##> data normalization
+  data_normalize_server(
+    id = "data_normalize_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  #> annotation server
+  ##> annotation
+  annotation_server(
+    id = "annotation_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  ##> annotation filter
+  annotation_filter_server(
+    id = "annotation_filter_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
+  ##> data merge
+  ##> annotation filter
+  data_merge_server(
+    id = "data_merge_id",
     volumes = volumes,
     prj_init = prj_init,
     data_clean_rv = data_clean_rv

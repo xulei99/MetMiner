@@ -83,7 +83,6 @@ data_normalize_ui <- function(id) {
           actionButton(ns('toggleSidebar'),"Toggle sidebar"),
           actionButton(inputId = ns('norm_start'),label = "Start normalization",icon = icon("play")),
           actionButton(inputId = ns('norm_plot_start'),label = "Visualize",icon = icon("images")),
-          actionButton(inputId = ns('export_norm'),label = "Export normalized data",icon = icon("download")),
           hr_bar(),
           materialSwitch(inputId = ns("norm_plt_format"),label = "Interactive plot", status = "primary"),
           tabsetPanel(
@@ -203,10 +202,11 @@ data_normalize_ui <- function(id) {
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom shinyjs toggle runjs useShinyjs
-#' @importFrom dplyr select all_of left_join
+#' @importFrom dplyr select all_of left_join pull
 #' @importFrom tibble rownames_to_column
-#' @importFrom massdataset activate_mass_dataset extract_expression_data
-#' @importFrom masscleaner detect_outlier extract_outlier_table impute_mv
+#' @importFrom massdataset activate_mass_dataset extract_expression_data extract_sample_info
+#' @importFrom masscleaner normalize_data integrate_data
+#' @importFrom plotly renderPlotly plotlyOutput
 #' @param id module of server
 #' @param volumes shinyFiles volumes
 #' @param prj_init use project init variables.
@@ -218,23 +218,33 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     ### 3.6.5 normalization -----------------------------------------------------
+    observeEvent(input$toggleSidebar, {
+      shinyjs::toggle(id = "Sidebar")
+    })
+
     p2_norm <- reactiveValues(data = NULL)
 
     observe({
-      updateSelectInput(session, "pca_col_by",choices = sample_info_col(),selected = sample_info_col()[3])
+      updateSelectInput(session, "pca_col_by",choices = colnames(prj_init$sample_info),selected = colnames(prj_init$sample_info)[3])
     })
 
     observeEvent(
       input$norm_start,
       {
         if(!is.null(prj_init$object_negative.init) & !is.null(prj_init$object_positive.init) & prj_init$steps == "Normalization"){
-          p2_norm$object_neg.impute= prj_init$object_negative.init;
-          p2_norm$object_pos.impute = prj_init$object_positive.init;
+          p2_norm$object_neg.impute= prj_init$object_negative.init %>%
+            activate_mass_dataset('sample_info') %>%
+            dplyr::select('sample_id') %>%
+            dplyr::left_join(prj_init$sample_info)
+          p2_norm$object_pos.impute = prj_init$object_positive.init %>%
+            activate_mass_dataset('sample_info') %>%
+            dplyr::select('sample_id') %>%
+            dplyr::left_join(prj_init$sample_info)
         } else {
-          if(is.null(p2_impute_mv$object_pos.impute)) {return()}
-          if(is.null(p2_impute_mv$object_neg.impute)) {return()}
-          p2_norm$object_neg.impute = p2_impute_mv$object_neg.impute
-          p2_norm$object_pos.impute = p2_impute_mv$object_pos.impute
+          if(is.null(data_clean_rv$object_pos.impute)) {return()}
+          if(is.null(data_clean_rv$object_neg.impute)) {return()}
+          p2_norm$object_neg.impute = data_clean_rv$object_neg.impute
+          p2_norm$object_pos.impute = data_clean_rv$object_pos.impute
         }
 
         #> parameters
@@ -313,7 +323,8 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
           tbl = p2_norm$object_pos.norm %>% extract_expression_data() %>% rownames_to_column("variable_id")
         )
         output$neg_norm_tbl = renderDataTable_formated(
-          actions = input$norm_start,condition1 = p2_norm$object_neg.norm,filename.a = "3.6.5.Normalization_Acc_Mat_neg",
+          actions = input$norm_start,condition1 = p2_norm$object_neg.norm,
+          filename.a = "3.6.5.Normalization_Acc_Mat_neg",
           tbl = p2_norm$object_neg.norm %>% extract_expression_data() %>% rownames_to_column("variable_id")
         )
 
@@ -335,7 +346,8 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
           p2_norm$object_neg.norm %>%
           activate_mass_dataset('variable_info') %>%
           left_join(p2_norm$neg.tbl,by = c('variable_id' = 'ID'))
-
+        data_clean_rv$object_pos.norm = p2_norm$object_pos.norm
+        data_clean_rv$object_neg.norm = p2_norm$object_neg.norm
 
         #> save mass object
         save_massobj(
@@ -373,39 +385,39 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
         output$pca.pos_plt <- renderUI({
           plot_type <- input$norm_plt_format
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_pca.pos")
+            plotlyOutput(outputId = ns("plotly_norm_pca.pos"))
           } else {
-            plotOutput(outputId = "plot_norm_pca.pos")
+            plotOutput(outputId = ns("plot_norm_pca.pos"))
           }
         })
         output$pca.pos_plt_raw <- renderUI({
           plot_type <- input$norm_plt_format
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_pca2.pos")
+            plotlyOutput(outputId = ns("plotly_norm_pca2.pos"))
           } else {
-            plotOutput(outputId = "plot_norm_pca2.pos")
+            plotOutput(outputId = ns("plot_norm_pca2.pos"))
           }
         })
 
         output$plot_norm_pca.pos <- renderPlot({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_pos.norm)){return()}
-          pca_plot(obj = p2_norm$object_pos.norm,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
+          pca_plot(object = p2_norm$object_pos.norm,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
         })
         output$plot_norm_pca2.pos <- renderPlot({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_pos.norm)){return()}
-          pca_plot(obj = p2_norm$object_pos.impute,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
+          pca_plot(object = p2_norm$object_pos.impute,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
         })
         output$plotly_norm_pca.pos <- renderPlotly({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_pos.norm)){return()}
-          pca_plot(obj = p2_norm$object_pos.norm,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
+          pca_plot(object = p2_norm$object_pos.norm,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
         })
         output$plotly_norm_pca2.pos <- renderPlotly({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_pos.norm)){return()}
-          pca_plot(obj = p2_norm$object_pos.impute,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
+          pca_plot(object = p2_norm$object_pos.impute,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
         })
 
         #> mv plot original neg
@@ -413,9 +425,9 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
           plot_type <- input$norm_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_pca.neg")
+            plotlyOutput(outputId = ns("plotly_norm_pca.neg"))
           } else {
-            plotOutput(outputId = "plot_norm_pca.neg")
+            plotOutput(outputId = ns("plot_norm_pca.neg"))
           }
         })
 
@@ -423,9 +435,9 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
           plot_type <- input$norm_plt_format
 
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_pca2.neg")
+            plotlyOutput(outputId = ns("plotly_norm_pca2.neg"))
           } else {
-            plotOutput(outputId = "plot_norm_pca2.neg")
+            plotOutput(outputId = ns("plot_norm_pca2.neg"))
           }
         })
 
@@ -433,25 +445,25 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
         output$plot_norm_pca.neg <- renderPlot({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_neg.norm)){return()}
-          pca_plot(obj = p2_norm$object_neg.norm,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
+          pca_plot(object = p2_norm$object_neg.norm,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
         })
 
         output$plot_norm_pca2.neg <- renderPlot({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_neg.norm)){return()}
-          pca_plot(obj = p2_norm$object_neg.impute,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
+          pca_plot(object = p2_norm$object_neg.impute,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = F)
         })
 
         output$plotly_norm_pca.neg <- renderPlotly({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_neg.norm)){return()}
-          pca_plot(obj = p2_norm$object_neg.norm,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
+          pca_plot(object = p2_norm$object_neg.norm,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
         })
 
         output$plotly_norm_pca2.neg <- renderPlotly({
           if(is.null(input$norm_plot_start)){return()}
           if(is.null(p2_norm$object_neg.norm)){return()}
-          pca_plot(obj = p2_norm$object_neg.impute,tag = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
+          pca_plot(object = p2_norm$object_neg.impute,colby = p2_norm$temp_norm_pca_col_by,center = T,scale = T,removeVar = .1,interactive = T)
         })
 
         #> rsd plot
@@ -459,9 +471,9 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
         output$rsd.pos_plt <- renderUI({
           plot_type <- input$norm_plt_format
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_rsd.pos")
+            plotlyOutput(outputId = ns("plotly_norm_rsd.pos"))
           } else {
-            plotOutput(outputId = "plot_norm_rsd.pos")
+            plotOutput(outputId = ns("plot_norm_rsd.pos"))
           }
         })
 
@@ -480,9 +492,9 @@ data_normalize_server <- function(id,volumes,prj_init,data_clean_rv) {
         output$rsd.neg_plt <- renderUI({
           plot_type <- input$norm_plt_format
           if (plot_type) {
-            plotlyOutput(outputId = "plotly_norm_rsd.neg")
+            plotlyOutput(outputId = ns("plotly_norm_rsd.neg"))
           } else {
-            plotOutput(outputId = "plot_norm_rsd.neg")
+            plotOutput(outputId = ns("plot_norm_rsd.neg"))
           }
         })
 

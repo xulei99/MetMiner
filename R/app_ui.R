@@ -30,7 +30,15 @@ app_ui <- function(request) {
         data_overview_ui("data_overview_id"),
         data_rm_noise_ui("data_rm_noise_id"),
         data_rm_outlier_ui("data_rm_outlier_id"),
-        data_mv_impute_ui("data_mv_impute_id")
+        data_mv_impute_ui("data_mv_impute_id"),
+        data_normalize_ui("data_normalize_id")
+      ),
+      navbarMenu(
+        title = 'Downstream Analysis',
+        icon = bs_icon("bar-chart-line"),
+        annotation_ui("annotation_id"),
+        annotation_filter_ui("annotation_filter_id"),
+        data_merge_ui("data_merge_id")
       )
     )
   )
