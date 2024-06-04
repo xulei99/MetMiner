@@ -100,6 +100,14 @@ app_server <- function(input, output, session) {
     prj_init = prj_init,
     data_clean_rv = data_clean_rv
   )
+  ##> metabolite marker picking
+  ##> DAM analysis
+  dam_res_server(
+    id = "dam_res_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
 
 
 

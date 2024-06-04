@@ -38,7 +38,8 @@ app_ui <- function(request) {
         icon = bs_icon("bar-chart-line"),
         annotation_ui("annotation_id"),
         annotation_filter_ui("annotation_filter_id"),
-        data_merge_ui("data_merge_id")
+        data_merge_ui("data_merge_id"),
+        dam_res_ui("dam_res_id")
       )
     )
   )
