@@ -147,7 +147,7 @@ dam_res_ui <- function(id) {
               title = 'File check',height = '500px',width = "100%",
               icon = icon('check'),
               hr_head(),
-              uiOutput(ns("dam_file_check"))
+              uiOutput(ns("dam_file_check"),fill = T)
             ),
             tabPanel(
               title = 'DAM result',height = '500px',width = "100%",
@@ -192,14 +192,14 @@ dam_res_ui <- function(id) {
                        tags$h4("Score",style = 'color: #008080'),
                        hr_head(),
                        jqui_resizable(
-                         uiOutput(ns("dam_pca_score"))
+                         uiOutput(ns("dam_pca_score"),fill = T)
                        )
                 ),
                 column(width = 4,
                        tags$h4("Loading",style = 'color: #008080'),
                        hr_head(),
                        jqui_resizable(
-                         uiOutput(ns("dam_pca_loading"))
+                         uiOutput(ns("dam_pca_loading"),fill = T)
                        )
                 )
               ),
@@ -211,21 +211,14 @@ dam_res_ui <- function(id) {
                        hr_head(),
                        verbatimTextOutput(ns("dam_opls_summary"))
                 ),
-                column(width = 4,
-                       tags$h4("Score",style = 'color: #008080'),
+                column(width = 8,
+                       tags$h4("Plot auto",style = 'color: #008080'),
                        hr_head(),
                        jqui_resizable(
-                         uiOutput(ns("dam_opls_score"))
+                         plotOutput(ns("opls_da_plt_auto"))
                        )
-                ),
-                column(width = 4,
-                       tags$h4("Loading",style = 'color: #008080'),
-                       hr_head(),
-                       jqui_resizable(
-                         uiOutput(ns("dam_opls_loading"))
                        )
                 )
-              )
             ),
             tabPanel(
               title = 'Univariate statistical analysis',height = '500px',width = "100%",
@@ -238,7 +231,7 @@ dam_res_ui <- function(id) {
                        tags$h4("Volcano plot",style = 'color: #008080'),
                        hr_head(),
                        jqui_resizable(
-                         uiOutput(ns("dam_voc_plot"))
+                         uiOutput(ns("dam_voc_plot"),fill = T)
                        )
                 ),
                 column(width = 4,
@@ -284,18 +277,20 @@ dam_res_ui <- function(id) {
 #'     DO NOT REMOVE.
 #' @import shiny
 #' @importFrom shinyjs toggle runjs
+#' @importFrom ropls plot
 #' @importFrom dplyr select pull all_of left_join mutate across where case_when arrange
 #' @importFrom tibble rownames_to_column column_to_rownames
 #' @importFrom massdataset activate_mass_dataset extract_annotation_table extract_sample_info extract_variable_info extract_expression_data export_mass_dataset4metdna export_ms2_data
-#' @import plotly
+#' @importFrom plotly plotlyOutput renderPlotly ggplotly event_register event_data
+#' @importFrom writexl write_xlsx
 #' @importFrom PCAtools biplot pca plotloadings
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggstatsplot ggbetweenstats
-#' @import ComplexHeatmap
+#' @importFrom ComplexHeatmap make_comb_mat set_size comb_size UpSet comb_degree HeatmapAnnotation anno_barplot rowAnnotation anno_text max_text_width set_name draw
 #' @import MDAtoolkits
 #' @importFrom circlize colorRamp2
 #' @importFrom stringr str_split
-#' @import MDAtoolkits
+#' @importFrom grid gpar
 #' @param id module of server
 #' @param volumes shinyFiles volumes
 #' @param prj_init use project init variables.
@@ -397,6 +392,8 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
           p3_DAM$dam_right_sid = input$dam_right_sid %>% as.character()
         }
 
+
+
         output$dam_file_check <- renderUI({
           isolate(HTML(paste0(
             '<h4>DAMs Compare group setting</h4><hr>',
@@ -440,88 +437,108 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
         p3_DAM$dam_file_path = paste0(prj_init$wd,"/Result/DAM/",p3_DAM$dam_left_name,"_vs_",p3_DAM$dam_right_name,"/")
         dir.create(path = p3_DAM$dam_file_path,showWarnings = F,recursive = T)
 
-        ##> DAM analysis
-        res_obj = MDAtoolkits::DAM_analysis(
-          x= p3_DAM$expmat,
-          left_index = p3_DAM$dam_left_sid,
-          right_index = p3_DAM$dam_right_sid,
-          left = p3_DAM$dam_left_name,
-          right = p3_DAM$dam_right_name,
-          method = p3_DAM$dam_method1,
-          method2 = p3_DAM$dam_method2,
-          method3 = p3_DAM$dam_method3,
-          paired = p3_DAM$dam_paired
+        ## progress
+        tags = c("dam analysis","upsetplot")
+        dam_steps_tag = c(paste0("Running ",tags," in progress..."),"Finish!")
+
+        dam_steps = length(dam_steps_tag)
+        withProgress(message = 'DAM analysis', value = 0,
+                     expr = {
+                       for (i in 1:(dam_steps)) {
+                         incProgress(1/dam_steps,detail = dam_steps_tag[i])
+                         if(i == 1) {
+                           ##> DAM analysis
+                           res_obj = MDAtoolkits::DAM_analysis(
+                             x= p3_DAM$expmat,
+                             left_index = p3_DAM$dam_left_sid,
+                             right_index = p3_DAM$dam_right_sid,
+                             left = p3_DAM$dam_left_name,
+                             right = p3_DAM$dam_right_name,
+                             method = p3_DAM$dam_method1,
+                             method2 = p3_DAM$dam_method2,
+                             method3 = p3_DAM$dam_method3,
+                             paired = p3_DAM$dam_paired
+                           )
+                           ##> split
+                           p3_DAM$res_tbl_all = res_obj$DAM_tbl
+                           p3_DAM$oplsda = res_obj$opls_out
+                           ##> export
+                           writexl::write_xlsx( p3_DAM$res_tbl_all,paste0(p3_DAM$dam_file_path,"DAM_analysis.xlsx"))
+
+                           png(filename = paste0(p3_DAM$dam_file_path,p3_DAM$dam_method2,".png"),width = 3000,height = 2500,res = 300)
+                           ropls::plot(res_obj$opls_out)
+                           dev.off()
+                         } else if (i == 2) {
+                           ##> upset plot
+                           FvsH_upset = p3_DAM$res_tbl_all %>%
+                             mutate(
+                               log2fc = case_when(
+                                 abs(log2fc) >= 1 ~ 1,
+                                 TRUE ~ 0
+                               ),
+                               pvalue = case_when(
+                                 pvalue <= 0.05 ~ 1,
+                                 TRUE ~ 0
+                               ),
+                               FDR = case_when(
+                                 FDR <= 0.05 ~ 1,
+                                 TRUE ~ 0
+                               ),
+                               VIP = case_when(
+                                 VIP >= 1 ~ 1,
+                                 TRUE ~ 0
+                               )
+                             ) %>%
+                             column_to_rownames("CompoundID") %>%
+                             as.matrix()
+
+                           m = make_comb_mat(FvsH_upset)
+                           ss = set_size(m)
+                           cs = comb_size(m)
+
+                           p3_DAM$ht = UpSet(
+                             m,
+                             set_order = order(ss),
+                             comb_order = order(comb_degree(m), -cs),
+                             top_annotation = HeatmapAnnotation(
+                               "DM Intersections" = anno_barplot(
+                                 cs,
+                                 ylim = c(0, max(cs)*1.1),
+                                 border = FALSE,
+                                 gp = gpar(fill = "salmon",alpha = 0.6),
+                                 height = unit(4, "cm")
+                               ),
+                               annotation_name_side = "left",
+                               annotation_name_rot = 90
+                             ),
+                             left_annotation = rowAnnotation(
+                               "DM number" = anno_barplot(-ss,
+                                                          baseline = 0,
+                                                          border = FALSE,
+                                                          gp = gpar(fill = "cyan",alpha = 0.6),
+                                                          width = unit(4, "cm")
+                               ),
+                               set_name = anno_text(set_name(m),
+                                                    location = 0.5,
+                                                    just = "center",
+                                                    width = max_text_width(set_name(m)) + unit(4, "mm"))
+                             ),
+                             right_annotation = NULL,
+                             show_row_names = FALSE
+                           )
+
+
+                           output$dam_pos_upset = renderPlot({
+                             if(is.null(p3_DAM$ht)){return()}
+                             print(draw(p3_DAM$ht))
+                           })
+
+                         } else {
+                           Sys.sleep(1)
+                         }
+                       }
+                     }
         )
-
-
-        p3_DAM$res_tbl_all = res_obj$DAM_tbl
-        p3_DAM$oplsda = res_obj$opls_out
-        writexl::write_xlsx( p3_DAM$res_tbl_all,paste0(p3_DAM$dam_file_path,"DAM_analysis.xlsx"))
-        png(filename = paste0(p3_DAM$dam_file_path,method2,".png"),width = 3000,height = 2600,res = 300)
-        plot(res_obj$opls_out)
-        dev.off()
-        ##> upset plot
-        FvsH_upset = p3_DAM$res_tbl_all %>%
-          mutate(
-            log2fc = case_when(
-              abs(log2fc) >= 1 ~ 1,
-              TRUE ~ 0
-            ),
-            pvalue = case_when(
-              pvalue <= 0.05 ~ 1,
-              TRUE ~ 0
-            ),
-            FDR = case_when(
-              FDR <= 0.05 ~ 1,
-              TRUE ~ 0
-            ),
-            VIP = case_when(
-              VIP >= 1 ~ 1,
-              TRUE ~ 0
-            )
-          ) %>%
-          column_to_rownames("CompoundID") %>%
-          as.matrix()
-
-        m = make_comb_mat(FvsH_upset)
-        ss = set_size(m)
-        cs = comb_size(m)
-
-        p3_DAM$ht = UpSet(
-          m,
-          set_order = order(ss),
-          comb_order = order(comb_degree(m), -cs),
-          top_annotation = HeatmapAnnotation(
-            "DM Intersections" = anno_barplot(
-              cs,
-              ylim = c(0, max(cs)*1.1),
-              border = FALSE,
-              gp = gpar(fill = "salmon",alpha = 0.6),
-              height = unit(4, "cm")
-            ),
-            annotation_name_side = "left",
-            annotation_name_rot = 90
-          ),
-          left_annotation = rowAnnotation(
-            "DM number" = anno_barplot(-ss,
-                                       baseline = 0,
-                                       border = FALSE,
-                                       gp = gpar(fill = "cyan",alpha = 0.6),
-                                       width = unit(4, "cm")
-            ),
-            set_name = anno_text(set_name(m),
-                                 location = 0.5,
-                                 just = "center",
-                                 width = max_text_width(set_name(m)) + unit(4, "mm"))
-          ),
-          right_annotation = NULL,
-          show_row_names = FALSE
-        )
-
-        output$dam_pos_upset = renderPlot({
-          if(is.null(p3_DAM$ht)){return()}
-          print(draw(p3_DAM$ht))
-        })
 
         p3_DAM$res_tbl_filtered =
           p3_DAM$res_tbl_all %>%
@@ -558,6 +575,20 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
     )
 
     observeEvent(input$dam_pca_show,{
+
+      ##> opls-da
+      output$dam_opls_summary <- renderPrint({
+        if(is.null(input$dam_pca_show)) {return()}
+        if(is.null(p3_DAM$oplsda)) {return()}
+        p3_DAM$oplsda
+      })
+
+
+      output$opls_da_plt_auto = renderPlot({
+        if(is.null(input$dam_pca_show)) {return()}
+        if(is.null(p3_DAM$oplsda)) {return()}
+        ropls::plot(p3_DAM$oplsda)
+      })
       ##> PCA
       dam_showloading = input$dam_showloading %>% as.logical()
       dam_pca_col_by = input$dam_pca_col_by %>% as.character()
@@ -625,14 +656,14 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
         temp_loading_plot
       })
 
-
-
       output$dam_plotly_loading <- renderPlotly({
         if(is.null(temp_loading_plot)){return()}
         temp_loading_plot %>% plotly::ggplotly()
       })
     })
-    ##> OPLS-DA
+
+
+# voc plot ----------------------------------------------------------------
 
 
     observeEvent(input$dam_voc_show,{
@@ -682,8 +713,6 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
                        title = d)
       })
 
-
-
       output$dam_anno_data <- renderPrint({
         d <- event_data("plotly_click")
         d = (d$customdata %>% str_split( pattern = "\\|",n = Inf,simplify = T))[1]
@@ -699,8 +728,6 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
       temp_x_pos = temp_x$pos
       temp_x_neg = temp_x$neg
 
-
-
       output$dam_ms2_spectra <- renderDataTable({
         d <- event_data("plotly_click")
         d = (d$customdata %>% str_split( pattern = "\\|",n = Inf,simplify = T))[1]
@@ -709,6 +736,7 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
           temp_ms2_tbl = temp_ms2@ms2_spectra %>%
             as.data.frame() %>%
             setNames(c("mz","intensity")) %>%
+            mutate(intensity = (intensity/max(intensity))*100) %>%
             arrange(desc(intensity))
           temp_ms2_tbl
         } else if(d %in% temp_x_neg@variable_id) {
@@ -716,6 +744,7 @@ dam_res_server <- function(id,volumes,prj_init,data_clean_rv) {
           temp_ms2_tbl = temp_ms2@ms2_spectra %>%
             as.data.frame() %>%
             setNames(c("mz","intensity")) %>%
+            mutate(intensity = (intensity/max(intensity))*100) %>%
             arrange(desc(intensity))
           temp_ms2_tbl
         } else {

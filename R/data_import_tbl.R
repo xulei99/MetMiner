@@ -125,7 +125,7 @@ data_import_tbl_ui <- function(id) {
 #' @importFrom shinyjs toggle runjs useShinyjs
 #' @importFrom shinyFiles shinyDirChoose parseDirPath parseFilePaths
 #' @importFrom dplyr select mutate case_when pull mutate_if filter inner_join
-#' @importFrom stringr str_detect
+#' @importFrom stringr str_detect regex
 #' @importFrom tibble column_to_rownames rownames_to_column
 #' @importFrom massdataset create_mass_dataset mutate_ms2
 #' @param id module of server
@@ -175,13 +175,12 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
 
 
     #> File check
-  #  para_tbl_check <- reactiveValues(data = NULL)
+    para_tbl_check <- reactiveValues(data = NULL)
 
     #> File check event
     observeEvent(
       input$action1.1,
       {
-        if(is.null(input$SampleInfo)){return()}
         if(is.null(input$expmat)){return()}
         if(is.null(input$MS2_table)){return()}
 
@@ -324,7 +323,6 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
     observeEvent(
       input$action2.1,
       {
-        if(is.null(input$SampleInfo)){return()}
         if(is.null(input$expmat)){return()}
         if(is.null(input$MS2_table)){return()}
         pro_step_tbl = c(

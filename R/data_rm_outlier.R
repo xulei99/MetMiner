@@ -82,7 +82,7 @@ data_rm_outlier_ui <- function(id) {
               tags$h3("Missing value",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("outlier.pos_plt"))
+                uiOutput(ns("outlier.pos_plt"),fill = T)
               ),
               textInput(inputId = ns("width4.3.1"),
                         label = "width",
@@ -109,7 +109,7 @@ data_rm_outlier_ui <- function(id) {
               tags$h3("Missing value",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("outlier.neg_plt"))
+                uiOutput(ns("outlier.neg_plt"),fill = T)
               ),
               textInput(inputId = ns("width4.3.2"),
                         label = "width",

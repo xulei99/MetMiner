@@ -64,7 +64,7 @@ data_overview_ui <- function(id) {
               tags$h3("Feature accumulation profile of QC samples",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("data_clean_batch_plt.pos"))
+                uiOutput(ns("data_clean_batch_plt.pos"),fill = T)
               ),
               textInput(inputId = ns("width4.1.1"),
                         label = "width",
@@ -77,7 +77,7 @@ data_overview_ui <- function(id) {
               tags$h3("Summary of missing values in all samples",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("data_clean_mv_plt.pos"))
+                uiOutput(ns("data_clean_mv_plt.pos"),fill = T)
               ),
               textInput(inputId = ns("width4.1.2"),
                         label = "width",
@@ -95,7 +95,7 @@ data_overview_ui <- function(id) {
               tags$h3("Feature accumulation profile of QC samples",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("data_clean_batch_plt.neg"))
+                uiOutput(ns("data_clean_batch_plt.neg"),fill = T)
               ),
               textInput(inputId = ns("width4.1.3.1"),
                         label = "width",

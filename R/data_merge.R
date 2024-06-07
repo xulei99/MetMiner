@@ -69,7 +69,7 @@ data_merge_ui <- function(id) {
               hr_main(),
               selectInput_div(inputId = ns("merge_colorby"),label = "colored by",choices = c("group",'batch'),selected = "group",multiple = F,title = "PCA color by"),
               jqui_resizable(
-                uiOutput(ns("merge_pca"))
+                uiOutput(ns("merge_pca"),fill = T)
               ),
               hr_head(),
               textInput(inputId = ns("width4.9.1"),

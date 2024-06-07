@@ -95,7 +95,7 @@ data_normalize_ui <- function(id) {
               tags$h3("PCA normalized",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("pca.pos_plt"))
+                uiOutput(ns("pca.pos_plt"),fill = T)
               ),
               textInput(inputId = ns("width4.5.1"),
                         label = "width",
@@ -108,7 +108,7 @@ data_normalize_ui <- function(id) {
               tags$h3("PCA raw",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("pca.pos_plt_raw"))
+                uiOutput(ns("pca.pos_plt_raw"),fill = T)
               ),
               textInput(inputId = ns("width4.5.2"),
                         label = "width",
@@ -144,7 +144,7 @@ data_normalize_ui <- function(id) {
               tags$h3("PCA normalized",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("pca.neg_plt"))
+                uiOutput(ns("pca.neg_plt"),fill = T)
               ),
 
               textInput(inputId = ns("width4.5.4"),
@@ -158,7 +158,7 @@ data_normalize_ui <- function(id) {
               tags$h3("PCA raw",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("pca.neg_plt_raw"))
+                uiOutput(ns("pca.neg_plt_raw"),fill = T)
               ),
 
               textInput(inputId = ns("width4.5.5"),
@@ -172,7 +172,7 @@ data_normalize_ui <- function(id) {
               tags$h3("RSD",style = 'color: #008080'),
               hr_main(),
               jqui_resizable(
-                uiOutput(ns("rsd.neg_plt"))
+                uiOutput(ns("rsd.neg_plt"),fill = T)
               ),
               textInput(inputId = ns("width4.5.6"),
                         label = "width",

@@ -308,6 +308,7 @@ annotation_server <- function(id,volumes,prj_init,data_clean_rv) {
         }
         dir.create(path = paste0(prj_init$wd,"/Result/Database/"),showWarnings = F,recursive = T)
         temp_db <- p2_anno$db
+        data_clean_rv$db <- p2_anno$db
         save(temp_db,file =  paste0(prj_init$wd,"/Result/Database/auto_saved.dblist"))
 
         ## parameters
