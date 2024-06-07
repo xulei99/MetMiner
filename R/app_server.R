@@ -115,6 +115,13 @@ app_server <- function(input, output, session) {
     prj_init = prj_init,
     data_clean_rv = data_clean_rv
   )
+  ##> DAM analysis
+  data_enrich_server(
+    id = "data_enrich_id",
+    volumes = volumes,
+    prj_init = prj_init,
+    data_clean_rv = data_clean_rv
+  )
 
 
 

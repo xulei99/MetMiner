@@ -40,7 +40,8 @@ app_ui <- function(request) {
         annotation_filter_ui("annotation_filter_id"),
         data_merge_ui("data_merge_id"),
         data_class_ui("data_class_id"),
-        dam_res_ui("dam_res_id")
+        dam_res_ui("dam_res_id"),
+        data_enrich_ui("data_enrich_id")
       )
     )
   )

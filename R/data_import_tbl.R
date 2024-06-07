@@ -128,6 +128,7 @@ data_import_tbl_ui <- function(id) {
 #' @importFrom stringr str_detect regex
 #' @importFrom tibble column_to_rownames rownames_to_column
 #' @importFrom massdataset create_mass_dataset mutate_ms2
+#' @importFrom magrittr %>%
 #' @param id module of server
 #' @param volumes shinyFiles volumes
 #' @param prj_init use project init variables.
@@ -151,7 +152,7 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
     })
 
     vari_info_col1 = reactive({
-      colnames(temp_expmat_vari_tbl() |> as.data.frame())
+      colnames(temp_expmat_vari_tbl() %>%  as.data.frame())
     })
     #> match variable_info table
 
@@ -187,7 +188,7 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
         #> variable information
         para_tbl_check$RT_tbl = as.character(input$RT_tbl)
         para_tbl_check$temp_vari_exp =
-          temp_expmat_vari_tbl() |>
+          temp_expmat_vari_tbl() %>%
           as.data.frame()
         #> match variable information
         para_tbl_check$variable_id_n = as.character(input$exp_vari_id)
@@ -199,7 +200,7 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
 
         #> format files
         para_tbl_check$temp_vari_exp =
-          para_tbl_check$temp_vari_exp |>
+          para_tbl_check$temp_vari_exp %>%
           dplyr::rename(
             "variable_id" = para_tbl_check$variable_id_n,
             "mz" = para_tbl_check$mz_n,
@@ -209,19 +210,19 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
         #> minute to second
         if(para_tbl_check$RT_tbl == "minute") {
           para_tbl_check$vari_info =
-            para_tbl_check$temp_vari_exp |>
-            select(variable_id,mz,rt,ion) |>
+            para_tbl_check$temp_vari_exp %>%
+            select(variable_id,mz,rt,ion) %>%
             mutate(rt = rt*60)
         } else {
           para_tbl_check$vari_info =
-            para_tbl_check$temp_vari_exp |>
+            para_tbl_check$temp_vari_exp %>%
             select(variable_id,mz,rt,ion)
         }
 
-        if(str_detect(para_tbl_check$vari_info |> pull(ion) |> unique(),regex("\\+|pos|\\-|neg",ignore_case = T))[1]){
+        if(str_detect(para_tbl_check$vari_info %>%  pull(ion) %>%  unique(),regex("\\+|pos|\\-|neg",ignore_case = T))[1]){
           para_tbl_check$ion_judge = "Pass"
           para_tbl_check$vari_info =
-            para_tbl_check$vari_info |>
+            para_tbl_check$vari_info %>%
             mutate(ion = case_when(
               str_detect(ion,regex("\\+|pos",ignore_case = T)) ~ "pos",
               str_detect(ion,regex("\\-|neg",ignore_case = T)) ~ "neg"
@@ -241,23 +242,23 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
 
         #> expmat
         para_tbl_check$temp_exp =
-          para_tbl_check$temp_vari_exp |>
-          select(-mz,-rt,-ion) |>
-          column_to_rownames("variable_id") |>
+          para_tbl_check$temp_vari_exp %>%
+          select(-mz,-rt,-ion) %>%
+          column_to_rownames("variable_id") %>%
           mutate_if(is.character,as.numeric)
 
         output$tbl_expmat = renderDataTable_formated(
           actions = input$action1.1,
           condition1 = input$expmat,
           condition2 = para_tbl_check$temp_exp,
-          tbl = para_tbl_check$temp_exp |> rownames_to_column("variable_id"),
+          tbl = para_tbl_check$temp_exp  %>%  rownames_to_column("variable_id"),
           filename.a = "3.4.tblImport_expmat_check"
         )
 
 
         #> check expmat and sample information
-        para_tbl_check$vari_sample_info = prj_init$sample_info |> pull(sample_id) |> sort()
-        para_tbl_check$vari_vari_info = colnames(para_tbl_check$temp_exp ) |> sort()
+        para_tbl_check$vari_sample_info = prj_init$sample_info %>%  pull(sample_id) %>%  sort()
+        para_tbl_check$vari_vari_info = colnames(para_tbl_check$temp_exp ) %>%  sort()
         if(length(setdiff(para_tbl_check$vari_sample_info,para_tbl_check$vari_vari_info)) > 0 |
            length(setdiff(para_tbl_check$vari_vari_info,para_tbl_check$vari_sample_info)) > 0 ) {
           para_tbl_check$sample_match = paste0(c(setdiff(para_tbl_check$vari_sample_info,para_tbl_check$vari_vari_info),
@@ -267,18 +268,18 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
         }
 
         para_tbl_check$sample_subject =
-          prj_init$sample_info |>
-          filter(class == "Subject") |>
+          prj_init$sample_info %>%
+          filter(class == "Subject") %>%
           nrow()
 
         para_tbl_check$sample_QC =
-          prj_init$sample_info |>
-          filter(class == "QC") |>
+          prj_init$sample_info %>%
+          filter(class == "QC") %>%
           nrow()
 
 
         para_tbl_check$ms2_folder_selected <- parseDirPath(volumes, input$MS2_table)
-        para_tbl_check$MS2_path <- para_tbl_check$ms2_folder_selected |> as.character()
+        para_tbl_check$MS2_path <- para_tbl_check$ms2_folder_selected %>%  as.character()
         para_tbl_check$QC_number.n2 <- list.files(paste0(para_tbl_check$MS2_path,"/NEG/QC"))
         para_tbl_check$QC_number.p2 <- list.files(paste0(para_tbl_check$MS2_path,"/POS/QC"))
         para_tbl_check$S_number.n2 <- list.files(paste0(para_tbl_check$MS2_path,"/NEG/Subject"))
@@ -331,8 +332,8 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
           'Add MS2 spectra data',
           'All finish'
         )
-        data_import_rv$tbl_ms2_mz_tol = input$tbl_ms2_mz_tol |> as.numeric()
-        data_import_rv$tbl_ms2_rt_tol = input$tbl_ms2_rt_tol |> as.numeric()
+        data_import_rv$tbl_ms2_mz_tol = input$tbl_ms2_mz_tol %>%  as.numeric()
+        data_import_rv$tbl_ms2_rt_tol = input$tbl_ms2_rt_tol %>%  as.numeric()
         #functions
         withProgress(message = 'Create mass_dataset class', value = 0,
                      expr = {
@@ -341,22 +342,22 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
                          if (i == 1) {
                            ##> pos variables
                            variable_pos =
-                             para_tbl_check$vari_info |>
-                             filter(ion == "pos") |>
+                             para_tbl_check$vari_info %>%
+                             filter(ion == "pos") %>%
                              select(variable_id)
                            ##> pos sample informations
                            sample_info_pos = prj_init$sample_info
                            ##> pos expression table
                            expression_data_pos =
-                             para_tbl_check$temp_exp |>
-                             rownames_to_column("variable_id") |>
-                             inner_join(variable_pos) |>
-                             column_to_rownames("variable_id") |>
-                             select(sample_info_pos |> pull(sample_id))
+                             para_tbl_check$temp_exp %>%
+                             rownames_to_column("variable_id") %>%
+                             inner_join(variable_pos) %>%
+                             column_to_rownames("variable_id") %>%
+                             select(sample_info_pos %>%  pull(sample_id))
 
                            ##> pos variables informations
                            variable_info_pos =
-                             para_tbl_check$vari_info |>
+                             para_tbl_check$vari_info %>%
                              filter(ion == "pos")
                            ##> pos mass datasets
                            data_import_rv$object_pos =
@@ -370,22 +371,22 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
                          } else if (i == 2) {
                            ##> neg variables
                            variable_neg =
-                             para_tbl_check$vari_info |>
-                             filter(ion == "neg") |>
+                             para_tbl_check$vari_info %>%
+                             filter(ion == "neg") %>%
                              select(variable_id)
                            ##> neg expression table
 
                            ##> neg sample informations
                            sample_info_neg = prj_init$sample_info
                            expression_data_neg =
-                             para_tbl_check$temp_exp |>
-                             rownames_to_column("variable_id") |>
-                             inner_join(variable_neg) |>
-                             column_to_rownames("variable_id") |>
-                             select(sample_info_neg |> pull(sample_id))
+                             para_tbl_check$temp_exp %>%
+                             rownames_to_column("variable_id") %>%
+                             inner_join(variable_neg) %>%
+                             column_to_rownames("variable_id") %>%
+                             select(sample_info_neg %>%  pull(sample_id))
                            ##> neg variables informations
                            variable_info_neg =
-                             para_tbl_check$vari_info |>
+                             para_tbl_check$vari_info %>%
                              filter(ion == "neg")
                            ##> neg mass datasets
                            data_import_rv$object_neg =
@@ -396,7 +397,7 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
                              )
                          } else if (i == 3) {
                            data_import_rv$object_pos =
-                             data_import_rv$object_pos |>
+                             data_import_rv$object_pos %>%
                              mutate_ms2(
                                object = .,polarity = "positive",
                                ms1.ms2.match.mz.tol = data_import_rv$tbl_ms2_mz_tol,
@@ -410,7 +411,7 @@ data_import_tbl_server <- function(id,volumes,prj_init,data_import_rv) {
                              obj = data_import_rv$object_pos)
 
                            data_import_rv$object_neg =
-                             data_import_rv$object_neg |>
+                             data_import_rv$object_neg %>%
                              mutate_ms2(
                                object = .,polarity = "negative",
                                ms1.ms2.match.mz.tol = data_import_rv$tbl_ms2_mz_tol,
