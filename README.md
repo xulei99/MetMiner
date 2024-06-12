@@ -61,7 +61,7 @@ run_metMiner(maxRequestSize = 300)
 
 If you have utilized MetMiner in your project, please cite:
 
-Xiao Wang, Shuang Liang, Ke Yu, Wenqi Yang, Bing Zhao, Fei Liang, Xiang Zhu, Chao Zhou, Luis A. J. Mur, Jeremy A, Roberts, Junli Zhang,and Xuebin Zhang. 2024 “MetMiner: A user-friendly pipeline for large-scale plant metabolomics data analysis”
+Xiao Wang, Shuang Liang, Wenqi Yang, Ke Yu, Fei Liang, Bing Zhao, Xiang Zhu, Chao Zhou, Luis A. J. Mur, Jeremy A, Roberts, Junli Zhang,and Xuebin Zhang. 2024 “MetMiner: A user-friendly pipeline for large-scale plant metabolomics data analysis”
 
 Shen, Xiaotao, Hong Yan, Chuchu Wang, Peng Gao, Caroline H. Johnson, and Michael P. Snyder. 2022. “TidyMass an Object-Oriented Reproducible Analysis Framework for LC Data.” Nature Communications 13 (1): 4365. https://doi.org/10.1038/s41467-022-32155-w.
 
