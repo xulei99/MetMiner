@@ -59,7 +59,11 @@ run_metMiner(maxRequestSize = 300)
 
 ## Demo
 
-You can download demo file at: [Demo files - Google drive ](https://drive.google.com/drive/folders/1H9hJBEyy4Eu6egq8oS_zdn9scLYyXf6R?usp=drive_link) [Demo files - 阿里云盘](https://www.alipan.com/s/dqehgDEaU3w)
+You can download demo file at: 
+
+ - [Demo files - Google drive ](https://drive.google.com/drive/folders/1H9hJBEyy4Eu6egq8oS_zdn9scLYyXf6R?usp=drive_link)   
+ 
+ - [Demo files - 阿里云盘](https://www.alipan.com/s/dqehgDEaU3w)
 
 # Citation
 
