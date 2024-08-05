@@ -76,4 +76,3 @@ Shen, Xiaotao, Hong Yan, Chuchu Wang, Peng Gao, Caroline H. Johnson, and Michael
 If you started metMiner from TBtools plugin, please also cite:
 
 Chen, Chengjie, Ya Wu, Jiawei Li, Xiao Wang, Zaohai Zeng, Jing Xu, Yuanlong Liu, et al. 2023. “TBtools-II: A "One for All, All for One" Bioinformatics Platform for Biological Big-Data Mining.” Molecular Plant 0 (0). https://doi.org/10.1016/j.molp.2023.09.010.
-

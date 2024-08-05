@@ -26,10 +26,10 @@ data_rm_outlier_ui <- function(id) {
                        hr_main(),
                        sliderInput(
                          inputId = ns('na_percentage_cutoff'),
-                         label = "na_percentage_cutoff (%)",
+                         label = "na_percentage_cutoff",
                          min = 0,
-                         max = 100,
-                         value = 50
+                         max = 1,
+                         value = 0.5
                        ),
                        textInput(
                          inputId = ns('sd_fold_change'),
@@ -216,7 +216,7 @@ data_rm_outlier_server <- function(id,volumes,prj_init,data_clean_rv) {
           extract_outlier_table() %>%
           rownames_to_column('sample_id')
 
-        p2_mv_outlier$s_id.pos <- c("none", rownames(p2_mv_outlier$outlier_samples.pos))
+        p2_mv_outlier$s_id.pos <- c("none", p2_mv_outlier$outlier_samples.pos$sample_id)
 
 
         output$outlier.pos = renderDataTable_formated(
@@ -238,7 +238,7 @@ data_rm_outlier_server <- function(id,volumes,prj_init,data_clean_rv) {
           extract_outlier_table() %>%
           rownames_to_column('sample_id')
 
-        p2_mv_outlier$s_id.neg <- c("none", rownames(p2_mv_outlier$outlier_samples.neg))
+        p2_mv_outlier$s_id.neg <- c("none", p2_mv_outlier$outlier_samples.neg$sample_id)
         output$outlier.neg = renderDataTable_formated(
           actions = input$outlier_start,
           condition1 = p2_mv_outlier$outlier_samples.neg,
