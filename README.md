@@ -69,7 +69,7 @@ You can download demo file at:
 
 If you have utilized MetMiner in your project, please cite:
 
-Xiao Wang, Shuang Liang, Wenqi Yang, Ke Yu, Fei Liang, Bing Zhao, Xiang Zhu, Chao Zhou, Luis A. J. Mur, Jeremy A, Roberts, Junli Zhang,and Xuebin Zhang. 2024 “MetMiner: A user-friendly pipeline for large-scale plant metabolomics data analysis”
+Xiao Wang, Shuang Liang, Wenqi Yang, Ke Yu, Fei Liang, Bing Zhao, Xiang Zhu, Chao Zhou, Luis A. J. Mur, Jeremy A. Roberts, Junli Zhang and Xuebin Zhang. 2024 “MetMiner: A user-friendly pipeline for large-scale plant metabolomics data analysis. ” Journal of Integrative Plant Biology  https://doi.org/10.1111/jipb.13774 
 
 Shen, Xiaotao, Hong Yan, Chuchu Wang, Peng Gao, Caroline H. Johnson, and Michael P. Snyder. 2022. “TidyMass an Object-Oriented Reproducible Analysis Framework for LC Data.” Nature Communications 13 (1): 4365. https://doi.org/10.1038/s41467-022-32155-w.
 
