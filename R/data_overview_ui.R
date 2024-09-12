@@ -122,8 +122,6 @@ data_overview_ui <- function(id) {
         )
       )
     )
-  )
-
 }
 
 
