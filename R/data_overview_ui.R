@@ -44,13 +44,13 @@ data_overview_ui <- function(id) {
                        ),
                        selectInput(
                          inputId = ns("mv_order_by"),label = "order by",
-                         choices = c("sample id","injection oreder","batch","..."),selected = "injection oreder",
+                         choices = c("sample id","injection order","batch","..."),selected = "injection order",
                          multiple = F
                        ),
           )# sidebarPanel
       ),# div
       #### MainPanel ========
-      mainPanel(
+      mainPanel
          (
           actionButton(ns('toggleSidebar'),"Toggle sidebar"),
           actionButton(inputId = ns('data_clean_start'),label = "Start",icon = icon("play")),
