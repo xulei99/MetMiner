@@ -50,8 +50,7 @@ data_overview_ui <- function(id) {
           )# sidebarPanel
       ),# div
       #### MainPanel ========
-      mainPanel
-         (
+      mainPanel(
           actionButton(ns('toggleSidebar'),"Toggle sidebar"),
           actionButton(inputId = ns('data_clean_start'),label = "Start",icon = icon("play")),
           actionButton(inputId = ns('data_clean_reupload_si'),"Update sample information",icon = icon("angles-up")),
